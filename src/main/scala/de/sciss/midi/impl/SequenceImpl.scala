@@ -6,7 +6,7 @@ import collection.immutable.{IndexedSeq => IIdxSeq}
 import collection.breakOut
 
 private[midi] object SequenceImpl {
-  def fromJava(sj: j.Sequence): Sequence = new FromJava(sj)
+  def fromJava(sj: j.Sequence, skipUnknown: Boolean = true): Sequence = new FromJava(sj, skipUnknown = skipUnknown)
 
   def apply(tracks: IIdxSeq[Track]): Sequence = {
     tracks match {
@@ -32,15 +32,30 @@ private[midi] object SequenceImpl {
   private final class Apply(val tracks: IIdxSeq[Track], val ticks: Long, val rate: TickRate) extends Impl {
     protected def numTracks = tracks.size
 
-    def toJava = ???
+    def toJava: j.Sequence = {
+      val div: Float  = j.Sequence.SMPTE_30
+      val res: Int    = (rate.value * div + 0.5).toInt
+      val sj = new j.Sequence(div, res, numTracks)
+      val tjs = sj.getTracks
+      assert(tjs.length == tracks.size)
+      var i = 0
+      while (i < tjs.length) {
+        val t   = tracks(i)
+        val tj  = tjs(i)
+        t.events.foreach(e => tj.add(e.toJava))
+        i += 1
+      }
+      sj
+    }
   }
 
-  private final class FromJava(val peer: j.Sequence) extends Impl {
+  private final class FromJava(val peer: j.Sequence, skipUnknown: Boolean) extends Impl {
     self =>
 
     protected def numTracks = peer.getTracks.length
 
-    lazy val tracks: IIdxSeq[Track] = peer.getTracks.map(tj => TrackImpl.fromJava(tj, self))(breakOut)
+    lazy val tracks: IIdxSeq[Track] = peer.getTracks.map(tj =>
+      TrackImpl.fromJava(tj, self, skipUnknown = skipUnknown))(breakOut)
 
     def ticks: Long = peer.getTickLength
 

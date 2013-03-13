@@ -4,26 +4,35 @@ import impl.{SequenceImpl => Impl}
 import java.io.File
 import javax.sound.{midi => j}
 import collection.immutable.{IndexedSeq => IIdxSeq}
+import java.net.URL
 
 object Sequence {
   /**
    * Reads a sequence from an external MIDI file.
    *
-   * @param path  Path of a standard MIDI file.
+   * @param path          Path of a standard MIDI file.
+   * @param skipUnknown   Whether to skip unknown MIDI events (`true`, default) or not (`false`).
+   *                      If `false`, this fails if an unknown event is encountered.
    *
    * @return  the file parsed as a `Sequence`
    */
-  def read(path: String): Sequence = read(new File(path))
+  def read(path: String, skipUnknown: Boolean = true): Sequence = readFile(new File(path), skipUnknown = skipUnknown)
 
   /**
    * Reads a sequence from an external MIDI file.
    *
-   * @param file  a standard MIDI file.
+   * @param file          a standard MIDI file.
+   * @param skipUnknown   Whether to skip unknown MIDI events (`true`, default) or not (`false`).
+   *                      If `false`, this fails if an unknown event is encountered.
    *
    * @return  the file parsed as a `Sequence`
    */
-  def read(file: File): Sequence = {
-    Impl.fromJava(j.MidiSystem.getSequence(file))
+  def readFile(file: File, skipUnknown: Boolean = true): Sequence = {
+    Impl.fromJava(j.MidiSystem.getSequence(file), skipUnknown = skipUnknown)
+  }
+
+  def readURL(url: URL, skipUnknown: Boolean = true): Sequence = {
+    Impl.fromJava(j.MidiSystem.getSequence(url), skipUnknown = skipUnknown)
   }
 
   /** Creates a new sequence from a given list of tracks */

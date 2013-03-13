@@ -19,7 +19,7 @@ private[midi] object TrackImpl {
   }
 
   private final class Apply(val events: IIdxSeq[Event], val ticks: Long, val rate: TickRate) extends Impl {
-    def toJava: j.Track = ???
+//    def toJava: j.Track = ???
   }
 
   private final class FromJava(peer: j.Track, val rate: TickRate, skipUnknown: Boolean) extends Impl {
@@ -42,6 +42,6 @@ private[midi] object TrackImpl {
       }
     }
 
-    def toJava: j.Track = peer
+//    def toJava: j.Track = peer
   }
 }

@@ -36,6 +36,10 @@ Example:
     pch.map(_ % 12).toSet.toList.sorted // pitch classes (all twelve!)
 ```
 
+## limitations
+
+This is a very early version. Currently, there is no support for anything but notes, so no control changes, pitch bend etc.
+
 ## links
 
 Note: There is another similarly named library [scala-midi](http://code.google.com/p/scala-midi/) which is completely independent from this project.
