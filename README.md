@@ -51,7 +51,7 @@ Creating an example sequence:
 ## limitations
 
 - This is a very early version
-- Currently, there is no support for anything but notes, so no control changes, pitch bend etc.
+- Currently, there is no support for many messages, such as after touch, pitch bend, time code, song pointer etc.
 - There is a time base problem when writing sequences (`sq.write(<path>)`), although playback from within ScalaMIDI is correctly timed.
 
 ## links

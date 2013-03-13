@@ -60,16 +60,16 @@ private[midi] object TrackImpl {
     lazy val events: IIdxSeq[Event] = {
       val sz = peer.size()
       if (skipUnknown) {
-        Vector.tabulate(sz) { i =>
-          val evj = peer.get(i)
-          val j = Message.fromJava(evj.getMessage)
-          Event(evj.getTick, j)
-        }
-      } else {
         (0 until sz).flatMap { i =>
           val evj = peer.get(i)
           val j = Message.fromJavaOption(evj.getMessage)
           j.map(m => Event(evj.getTick, m))
+        }
+      } else {
+        Vector.tabulate(sz) { i =>
+          val evj = peer.get(i)
+          val j = Message.fromJava(evj.getMessage)
+          Event(evj.getTick, j)
         }
       }
     }

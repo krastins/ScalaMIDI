@@ -70,14 +70,14 @@ private[midi] object SequenceImpl {
 
     lazy val toJava: j.Sequence = {
       val mpqs = tracks.flatMap(_.events.takeWhile(_.tick == 0L)).collect {
-        case Event(_, MetaMessage.SetTempo(mpq)) => mpq
+        case Event(_, MetaMessage.Tempo(mpq)) => mpq
       }
       val (mpq, tracks0) = mpqs.headOption match {
         case Some(_mpq) => (_mpq, tracks)
         case _ =>
           val bpm   = 120.0 // bueno, que se puede acer?...
           val _mpq  = (60.0e6 / bpm + 0.5).toInt
-          val ev    = Event(0L, MetaMessage.SetTempo(_mpq))
+          val ev    = Event(0L, MetaMessage.Tempo(_mpq))
           val tempoTrack = Track(Vector(ev))
           val tracks1 = tempoTrack +: tracks // tracks.map { t => Track(ev +: t.events, t.ticks) }
           (_mpq, tracks1)
