@@ -26,13 +26,18 @@
 package de.sciss.midi
 
 object TickRate {
+  def tempo(bpm: Double, tpq: Int): TickRate = {
+    val tps = tpq / bpm * 60
+    apply(tps)
+  }
+
   /** Constructs a timebase given through a correspondence between
     * MIDI ticks and a duration in microseconds.
     *
     * @param  ticks   the length of a sequence in ticks
     * @param  micros  the corresponding duration in microseconds
     */
-  def apply(ticks: Long, micros: Long): TickRate = {
+  def duration(ticks: Long, micros: Long): TickRate = {
     val sec = micros * 1.0e-6
     apply(ticks/sec)
   }
@@ -42,5 +47,5 @@ object TickRate {
   * @param value  the rate in MIDI ticks per second
   */
 final case class TickRate(value: Double) {
-  override def toString = f"$productPrefix($value%1.2f ticks/sec.)"
+  override def toString = f"$productPrefix($value%1.1f ticks/sec.)"
 }

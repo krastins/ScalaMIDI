@@ -1,6 +1,6 @@
 name := "ScalaMIDI"
 
-version := "0.1.0-SNAPSHOT"
+version := "0.1.0"
 
 organization := "de.sciss"
 
@@ -22,7 +22,7 @@ scalacOptions ++= Seq("-deprecation", "-unchecked", "-feature")
 
 initialCommands in console :=
 """import de.sciss.midi._
-  |// import Implicits._
+  |import Sequence.read
 """.stripMargin
 
 // ---- build info ----

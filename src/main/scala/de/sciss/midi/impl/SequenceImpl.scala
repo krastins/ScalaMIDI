@@ -111,7 +111,7 @@ private[midi] object SequenceImpl {
 
     def ticks: Long = peer.getTickLength
 
-    lazy val rate = TickRate(ticks = ticks, micros = peer.getMicrosecondLength)
+    lazy val rate = TickRate.duration(ticks = ticks, micros = peer.getMicrosecondLength)
 
 //    def notes: IIdxSeq[OffsetNote] = tracks.flatMap(_.notes)
 

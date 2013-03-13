@@ -46,13 +46,13 @@ Creating an example sequence:
     val mx  = ev.map(_.tick).max
     val t   = Track(ev)
     val sq  = Sequence(Vector(t))
+    // sq.write(<path>)
 ```
 
 ## limitations
 
 - This is a very early version
 - Currently, there is no support for many messages, such as after touch, pitch bend, time code, song pointer etc.
-- There is a time base problem when writing sequences (`sq.write(<path>)`), although playback from within ScalaMIDI is correctly timed.
 
 ## links
 
