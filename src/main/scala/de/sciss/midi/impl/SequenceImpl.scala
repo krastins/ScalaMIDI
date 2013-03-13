@@ -38,9 +38,9 @@ private[midi] object SequenceImpl {
     tracks match {
       case head +: tail =>
         require(tail.forall(_.rate == head.rate), "Cannot mix tracks with different time bases")
-        val ticks   = (head.ticks /: tail) { case (m, t) => math.max(m, t.ticks) }
-        val rate    = head.rate
-        new Apply(tracks, ticks, rate)
+        val ticks           = (head.ticks /: tail) { case (m, t) => math.max(m, t.ticks) }
+        implicit val rate   = head.rate
+        new Apply(tracks, ticks)
 
       case _ =>
         sys.error("Sequences with no tracks currently not supported")
@@ -65,18 +65,34 @@ private[midi] object SequenceImpl {
     }
   }
 
-  private final class Apply(val tracks: IIdxSeq[Track], val ticks: Long, val rate: TickRate) extends Impl {
+  private final class Apply(val tracks: IIdxSeq[Track], val ticks: Long)(implicit val rate: TickRate) extends Impl {
     protected def numTracks = tracks.size
 
-    def toJava: j.Sequence = {
-      val div: Float  = j.Sequence.SMPTE_30
-      val res: Int    = (rate.value / div + 0.5).toInt
-      val sj = new j.Sequence(div, res, numTracks)
+    lazy val toJava: j.Sequence = {
+      val mpqs = tracks.flatMap(_.events.takeWhile(_.tick == 0L)).collect {
+        case Event(_, MetaMessage.SetTempo(mpq)) => mpq
+      }
+      val (mpq, tracks0) = mpqs.headOption match {
+        case Some(_mpq) => (_mpq, tracks)
+        case _ =>
+          val bpm   = 120.0 // bueno, que se puede acer?...
+          val _mpq  = (60.0e6 / bpm + 0.5).toInt
+          val ev    = Event(0L, MetaMessage.SetTempo(_mpq))
+          val tempoTrack = Track(Vector(ev))
+          val tracks1 = tempoTrack +: tracks // tracks.map { t => Track(ev +: t.events, t.ticks) }
+          (_mpq, tracks1)
+      }
+
+      // ppq = ticks/beat = (mpq aka micros/beat) * ticks/micro = mpq * ticks/second / 1.0e6
+      val tpq = (mpq * rate.value / 1.0e6 + 0.5).toInt
+      println(s"mpq = $mpq, tpq = $tpq")
+
+      val sj = new j.Sequence(j.Sequence.PPQ, tpq, tracks0.size)
       val tjs = sj.getTracks
-      assert(tjs.length == tracks.size)
+      assert(tjs.length == tracks0.size)
       var i = 0
       while (i < tjs.length) {
-        val t   = tracks(i)
+        val t   = tracks0(i)
         val tj  = tjs(i)
         t.events.foreach(e => tj.add(e.toJava))
         i += 1
