@@ -20,7 +20,7 @@ ScalaMIDI currently builds against Scala 2.10, using sbt 0.12. It uses the MIDI 
 
 ## overview
 
-Example:
+Reading and playing a MIDI file:
 
 ```scala
 
@@ -36,9 +36,23 @@ Example:
     pch.map(_ % 12).toSet.toList.sorted // pitch classes (all twelve!)
 ```
 
+Creating an example sequence:
+
+```scala
+
+    val ms  = (64 to 72).flatMap { pch => NoteOn(0, pch, 80) :: NoteOff(0, pch, 0) :: Nil }
+    implicit val rate = TickRate(400.0e6)
+    val ev  = ms.zipWithIndex.map { case (m, i) => Event((i * 0.25 * rate.value).toLong, m) }
+    val mx  = ev.map(_.tick).max
+    val t   = Track(ev)
+    val sq  = Sequence(Vector(t))
+```
+
 ## limitations
 
-This is a very early version. Currently, there is no support for anything but notes, so no control changes, pitch bend etc.
+- This is a very early version
+- Currently, there is no support for anything but notes, so no control changes, pitch bend etc.
+- There is a time base problem when writing sequences (`sq.write(<path>)`), although playback from within ScalaMIDI is correctly timed.
 
 ## links
 

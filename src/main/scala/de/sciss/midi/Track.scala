@@ -4,7 +4,14 @@ import impl.{TrackImpl => Impl}
 import collection.immutable.{IndexedSeq => IIdxSeq}
 
 object Track {
-  def apply(events: IIdxSeq[Event], ticks: Long)(implicit rate: TickRate): Track = Impl(events, ticks)
+  /** Creates a new track from a sequence of events.
+    * This adds an `EndOfTrack` marker unless the last event is such a meta message.
+    *
+    * @param events the events that constitute the track
+    * @param ticks  the length of the track in ticks. If `-1` (default), the length is the time stamp of the last event
+    * @param rate   the timebase for the track
+    */
+  def apply(events: IIdxSeq[Event], ticks: Long = -1)(implicit rate: TickRate): Track = Impl(events, ticks)
 }
 trait Track {
   /** The MIDI events within this track. */

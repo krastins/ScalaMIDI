@@ -55,6 +55,17 @@ trait Sequence {
   /** The duration of the sequence in seconds. */
   def duration: Double
 
-  /** Converts this object to a Java MIDI equivalent. */
+  /** Converts this object to a Java MIDI equivalent.
+    *
+    * If this sequence had been created from a MIDI file,
+    * this operation does not involve any conversions.
+    * Otherwise, a Java sequence is created based on SMPTE 30 fps resolution.
+    */
   def toJava: j.Sequence
+
+  /** Writes the sequence to a standard MIDI file. */
+  def write(path: String): Unit
+
+  /** Writes the sequence to a standard MIDI file. */
+  def writeFile(file: File): Unit
 }

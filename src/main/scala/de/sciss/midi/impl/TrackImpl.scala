@@ -10,10 +10,17 @@ private[midi] object TrackImpl {
     new FromJava(tj, rate, skipUnknown = skipUnknown)
   }
 
-  def apply(events: IIdxSeq[Event], ticks: Long)(implicit rate: TickRate): Track = new Apply(events, ticks, rate)
+  def apply(events: IIdxSeq[Event], ticks: Long = -1L)(implicit rate: TickRate): Track = {
+    val ticks1  = if (ticks < 0L) events.lastOption.map(_.tick).getOrElse(0L) else ticks
+    val events1 = events.lastOption match {
+      case Some(Event(_, MetaMessage.EndOfTrack)) => events
+      case _ => events :+ Event(ticks1, MetaMessage.EndOfTrack)
+    }
+    new Apply(events1, ticks1, rate)
+  }
 
   private sealed trait Impl extends Track {
-    final def duration: Double = ticks * rate.value
+    final def duration: Double = ticks / rate.value
 
     override def toString = f"midi.Track(# events = ${events.size}, dur = $duration%1.2f sec.)@${hashCode().toHexString}"
   }
