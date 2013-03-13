@@ -21,8 +21,12 @@ class MessageSpec extends FunSpec {
 
       import MetaMessage._
 
-//      forthBack(SMPTEOffset(SMPTEOffset.Format.value(29.97), hours = 3, minutes = 4, seconds = 5, frames = 6, subframes = 7))
-//      forthBack(SMPTEOffset(SMPTEOffset.Format.code(1), hours = 7, minutes = 6, seconds = 5, frames = 4, subframes = 3))
+//      val smpte = SMPTEOffset(SMPTEOffset.Format.value(29.97), hours = 3, minutes = 4, seconds = 5, frames = 6, subframes = 7)
+//      val smpteBack @ SMPTEOffset(_) = Message.fromJava(smpte.toJava)
+//      println(s"IN ${smpte.code.toHexString} OUT ${smpteBack.code.toHexString}")
+      forthBack(SMPTEOffset(SMPTEOffset.Format.value(29.97), hours = 3, minutes = 4, seconds = 5, frames = 6, subframes = 7))
+      forthBack(SMPTEOffset(SMPTEOffset.Format.value(29.97), hours = 3, minutes = 4, seconds = 5, frames = 6, subframes = 7))
+      forthBack(SMPTEOffset(SMPTEOffset.Format.code(1), hours = 7, minutes = 6, seconds = 5, frames = 4, subframes = 3))
       forthBack(KeySignature(23, KeySignature.Major))
       forthBack(KeySignature(45, KeySignature.Major))
       forthBack(EndOfTrack)

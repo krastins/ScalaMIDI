@@ -107,7 +107,7 @@ object Message {
           case SMPTEOffset.tpe =>
             val arr = mm.getData
             if (arr.length != 5) malformedMessage(m)
-            val code = (arr(0).toLong << 32) | ((arr(1) & 0xFF).toLong << 24) | ((arr(2) & 0xFF) << 16) |
+            val code = ((arr(0) & 0xFF).toLong << 32) | ((arr(1) & 0xFF).toLong << 24) | ((arr(2) & 0xFF) << 16) |
               ((arr(3) & 0xFF) << 8) | (arr(4) & 0xFF)
             SMPTEOffset(code)
 
@@ -347,7 +347,7 @@ object MetaMessage {
       * For simplicity this is an integer of the frames per second,
       * where `29` has the special meaning of 30 drop (29.97 fps).
       */
-    def fps: Format = Format.code((code >> 38).toInt)
+    def fps: Format = Format.code((code >> 38).toInt & 0x03)
 
     def minutes: Int    = (code.toInt >> 24) & 0xFF
     def seconds: Int    = (code.toInt >> 16) & 0xFF
