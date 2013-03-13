@@ -11,10 +11,10 @@ private[midi] object SequenceImpl {
   def apply(tracks: IIdxSeq[Track]): Sequence = {
     tracks match {
       case head +: tail =>
-        require(tail.forall(_.tickRate.micros == head.tickRate), "Cannot mix tracks with different time bases")
-        val ticks     = (0L /: tail) { case (m, t) => math.max(m, t.tickRate.ticks) }
-        val tickRate  = head.tickRate.copy(ticks = ticks)
-        new Apply(tracks, tickRate)
+        require(tail.forall(_.rate == head.rate), "Cannot mix tracks with different time bases")
+        val ticks   = (0L /: tail) { case (m, t) => math.max(m, t.ticks) }
+        val rate    = head.rate
+        new Apply(tracks, ticks, rate)
 
       case _ =>
         sys.error("Sequences with no tracks currently not supported")
@@ -24,10 +24,12 @@ private[midi] object SequenceImpl {
   private sealed trait Impl extends Sequence {
     protected def numTracks: Int
 
-    override def toString = s"midi.Sequence(# tracks = $numTracks)@${hashCode().toHexString}"
+    final def duration: Double = ticks * rate.value
+
+    override def toString = f"midi.Sequence(# tracks = $numTracks, dur = $duration%1.2f sec.)@${hashCode().toHexString}"
   }
 
-  private final class Apply(val tracks: IIdxSeq[Track], val tickRate: TickRate) extends Impl {
+  private final class Apply(val tracks: IIdxSeq[Track], val ticks: Long, val rate: TickRate) extends Impl {
     protected def numTracks = tracks.size
 
     def toJava = ???
@@ -40,7 +42,9 @@ private[midi] object SequenceImpl {
 
     lazy val tracks: IIdxSeq[Track] = peer.getTracks.map(tj => TrackImpl.fromJava(tj, self))(breakOut)
 
-    def tickRate = TickRate(ticks = peer.getTickLength, micros = peer.getMicrosecondLength)
+    def ticks: Long = peer.getTickLength
+
+    lazy val rate = TickRate(ticks = ticks, micros = peer.getMicrosecondLength)
 
 //    def notes: IIdxSeq[OffsetNote] = tracks.flatMap(_.notes)
 

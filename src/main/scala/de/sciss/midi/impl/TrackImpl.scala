@@ -5,24 +5,43 @@ import javax.sound.{midi => j}
 import collection.immutable.{IndexedSeq => IIdxSeq}
 
 private[midi] object TrackImpl {
-  def fromJava(t: j.Track, sq: Sequence): Track = {
-    val sz    = t.size()
-    val evts  = IIdxSeq.tabulate(sz) { i =>
-      val evj = t.get(i)
-      val j = Message.fromJavaOption(evj.getMessage)
-      j.map(m => Event(evj.getTick, m))
-//      val m = Message.fromJava(evj.getMessage)
-//      Event(evj.getTick, m)
-    }
-    val ticks     = t.ticks()
-    val tickRate  = sq.tickRate.copy(ticks = ticks)
-    new Impl(evts.collect { case Some(m) => m}, tickRate)
-//    new Impl(evts, tickRate)
+  def fromJava(tj: j.Track, sq: Sequence, skipUnknown: Boolean = true): Track = {
+    val rate = sq.rate
+    new FromJava(tj, rate, skipUnknown = skipUnknown)
   }
 
-  def apply(events: IIdxSeq[Event], tickRate: TickRate): Track = new Impl(events, tickRate)
+  def apply(events: IIdxSeq[Event], ticks: Long)(implicit rate: TickRate): Track = new Apply(events, ticks, rate)
 
-  private final class Impl(val events: IIdxSeq[Event], val tickRate: TickRate) extends Track {
-    override def toString = s"midi.Track(# events = ${events.size}, ticks = ${tickRate.ticks})@${hashCode().toHexString}"
+  private sealed trait Impl extends Track {
+    final def duration: Double = ticks * rate.value
+
+    override def toString = f"midi.Track(# events = ${events.size}, dur = $duration%1.2f sec.)@${hashCode().toHexString}"
+  }
+
+  private final class Apply(val events: IIdxSeq[Event], val ticks: Long, val rate: TickRate) extends Impl {
+    def toJava: j.Track = ???
+  }
+
+  private final class FromJava(peer: j.Track, val rate: TickRate, skipUnknown: Boolean) extends Impl {
+    def ticks: Long = peer.ticks()
+
+    lazy val events: IIdxSeq[Event] = {
+      val sz = peer.size()
+      if (skipUnknown) {
+        Vector.tabulate(sz) { i =>
+          val evj = peer.get(i)
+          val j = Message.fromJava(evj.getMessage)
+          Event(evj.getTick, j)
+        }
+      } else {
+        (0 until sz).flatMap { i =>
+          val evj = peer.get(i)
+          val j = Message.fromJavaOption(evj.getMessage)
+          j.map(m => Event(evj.getTick, m))
+        }
+      }
+    }
+
+    def toJava: j.Track = peer
   }
 }

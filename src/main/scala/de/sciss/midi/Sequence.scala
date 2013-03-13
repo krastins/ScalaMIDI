@@ -37,8 +37,14 @@ trait Sequence {
   /** All tracks of the sequence. */
   def tracks: IIdxSeq[Track]
 
-  /** The timebase of the sequence. */
-  def tickRate: TickRate
+  /** The length of the sequence in ticks. */
+  def ticks: Long
+
+  /** The timebase of the sequence in ticks per second. */
+  def rate: TickRate
+
+  /** The duration of the sequence in seconds. */
+  def duration: Double
 
   /** Converts this object to a Java MIDI equivalent. */
   def toJava: j.Sequence
