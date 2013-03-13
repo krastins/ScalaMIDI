@@ -77,21 +77,21 @@ object Message {
       case mm: j.MetaMessage =>
         import MetaMessage._
         // cf. http://www.omega-art.com/midi/mfiles.html#meta
+        // cf. http://www.recordingblogs.com/sa/tabid/88/Default.aspx?topic=MIDI+meta+messages
         (mm.getType: @switch) match {
           case KeySignature.tpe =>
             val arr = mm.getData
-            if (arr.length != 2) unknownMessage(m)
+            if (arr.length != 2) malformedMessage(m)
             KeySignature(arr(0), KeySignature.Mode(arr(1)))
 
           case EndOfTrack.tpe =>
             val arr = mm.getData
-//            if (arr.length != 1 || arr(0) != EndOfTrack.subType) unknownMessage(m)
-            if (arr.length != 0) unknownMessage(m)
+            if (arr.length != 0) malformedMessage(m)
             EndOfTrack
 
           case TimeSignature.tpe =>
             val arr             = mm.getData
-            if (arr.length != 4) unknownMessage(m)
+            if (arr.length != 4) malformedMessage(m)
             val num             = arr(0)
             val denom           = 1 << arr(1)
             val clocksPerMetro  = arr(2)
@@ -100,57 +100,40 @@ object Message {
 
           case Tempo.tpe =>
             val arr = mm.getData
-            if (arr.length != 3) unknownMessage(m)
+            if (arr.length != 3) malformedMessage(m)
             val microsPerQ  = ((arr(0) & 0xFF) << 16) | ((arr(1) & 0xFF) << 8) | (arr(2) & 0xFF)
             Tempo(microsPerQ)
 
           case SMPTEOffset.tpe =>
             val arr = mm.getData
-            if (arr.length != 5) unknownMessage(m)
+            if (arr.length != 5) malformedMessage(m)
             val code = (arr(0).toLong << 32) | ((arr(1) & 0xFF).toLong << 24) | ((arr(2) & 0xFF) << 16) |
               ((arr(3) & 0xFF) << 8) | (arr(4) & 0xFF)
             SMPTEOffset(code)
 
-          case TrackName.tpe =>
-            val arr   = mm.getData
-            val name  = new String(arr, "UTF-8")
-            TrackName(name)
-
-          case InstrumentName.tpe =>
-            val arr   = mm.getData
-            val name  = new String(arr, "UTF-8")
-            InstrumentName(name)
-
-          case Copyright.tpe =>
-            val arr   = mm.getData
-            val text  = new String(arr, "UTF-8")
-            Copyright(text)
-
-          case Lyrics.tpe =>
-            val arr   = mm.getData
-            val text  = new String(arr, "UTF-8")
-            Lyrics(text)
-
-          case Marker.tpe =>
-            val arr   = mm.getData
-            val name  = new String(arr, "UTF-8")
-            Marker(name)
-
-          case CuePoint.tpe =>
-            val arr   = mm.getData
-            val name  = new String(arr, "UTF-8")
-            CuePoint(name)
+          case TrackName     .tpe => TrackName     (metaString(mm))
+          case InstrumentName.tpe => InstrumentName(metaString(mm))
+          case Copyright     .tpe => Copyright     (metaString(mm))
+          case Lyrics        .tpe => Lyrics        (metaString(mm))
+          case Marker        .tpe => Marker        (metaString(mm))
+          case CuePoint      .tpe => CuePoint      (metaString(mm))
 
           case _ => unknownMessage(m)
         }
 
       case xm: j.SysexMessage =>
-        SysExMessage(xm.getData.toIndexedSeq)
+        SysEx(xm.getData.toIndexedSeq)
     }
   }
 
+  private def metaString(mm: j.MetaMessage) = new String(mm.getData, "UTF-8")
+
   @inline private def unknownMessage(m: j.MidiMessage): Nothing =
     throw new IllegalArgumentException("Unsupported MIDI message " +
+      m.getMessage.map(b => (b & 0xFF).toHexString).mkString("[", ",", "]"))
+
+  @inline private def malformedMessage(m: j.MidiMessage): Nothing =
+    throw new IllegalArgumentException("Malformed MIDI message " +
       m.getMessage.map(b => (b & 0xFF).toHexString).mkString("[", ",", "]"))
 
   sealed trait ChannelVoice extends Message {
@@ -179,6 +162,8 @@ final case class NoteOff(channel: Int, pitch: Int, velocity: Int) extends Messag
   }
 }
 final case class ControlChange(channel: Int, num: Int, value: Int) extends Message.ChannelVoice {
+  override def toString = s"$productPrefix(channel = $channel, num = $num, value = $value)"
+
   def toJava: j.MidiMessage = {
     val res = new j.ShortMessage
     res.setMessage(PROGRAM_CHANGE, channel, num, value)
@@ -186,13 +171,19 @@ final case class ControlChange(channel: Int, num: Int, value: Int) extends Messa
   }
 }
 final case class ProgramChange(channel: Int, patch: Int) extends Message.ChannelVoice {
+  override def toString = s"$productPrefix(channel = $channel, patch = $patch)"
+
   def toJava: j.MidiMessage = {
     val res = new j.ShortMessage
     res.setMessage(PROGRAM_CHANGE, channel, patch)
     res
   }
 }
-final case class SysExMessage(data: IIdxSeq[Byte]) extends Message {
+final case class SysEx(data: IIdxSeq[Byte]) extends Message {
+  override def toString = {
+    s"$productPrefix(data = ${data.take(8).map(_.toInt.toHexString).mkString(" ")}${if (data.size > 8) s"..., size = $data.size" else ""}})"
+  }
+  
   def toJava: j.MidiMessage = {
     val res = new j.SysexMessage
     val arr = data.toArray
@@ -318,6 +309,14 @@ object MetaMessage {
     }
   }
   final case class SMPTEOffset(code: Long) extends MetaMessage {
+    override def toString = {
+      val fpss = fps match {
+        case 29     => "29.97"
+        case other  => other.toString
+      }
+      f"$productPrefix(time = $hours%02d:$minutes%02d:$seconds%02d:$frames%02d.$subframes, fps = $fpss)"
+    }
+
     def hours: Int = (code >> 32).toInt & 0x3F
 
     /** Returns the frame rate encoded in this message.
