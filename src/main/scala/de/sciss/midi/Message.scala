@@ -166,7 +166,7 @@ final case class ControlChange(channel: Int, num: Int, value: Int) extends Messa
 
   def toJava: j.MidiMessage = {
     val res = new j.ShortMessage
-    res.setMessage(PROGRAM_CHANGE, channel, num, value)
+    res.setMessage(CONTROL_CHANGE, channel, num, value)
     res
   }
 }
@@ -175,7 +175,7 @@ final case class ProgramChange(channel: Int, patch: Int) extends Message.Channel
 
   def toJava: j.MidiMessage = {
     val res = new j.ShortMessage
-    res.setMessage(PROGRAM_CHANGE, channel, patch)
+    res.setMessage(PROGRAM_CHANGE, channel, patch, 0) // last byte is automatically ignored
     res
   }
 }
@@ -211,22 +211,21 @@ object MetaMessage {
 
     def toJava: j.MidiMessage = {
       val res = new j.MetaMessage
-      val arr = new Array[Byte](3)
-      arr(0)  = (arr.length - 1).toByte
-      arr(1)  = shift.toByte
-      arr(2)  = mode.id.toByte
+      val arr = new Array[Byte](2)
+      arr(0)  = shift.toByte
+      arr(1)  = mode.id.toByte
       res.setMessage(KeySignature.tpe, arr, arr.length)
       res
     }
   }
 
+  private final val emptyArray = new Array[Byte](0)
+
   case object EndOfTrack extends MetaMessage {
     final val tpe = 0x2F
     def toJava: j.MidiMessage = {
       val res = new j.MetaMessage
-      val arr = new Array[Byte](1)
-      arr(0)  = (arr.length - 1).toByte
-      res.setMessage(tpe, arr, arr.length)
+      res.setMessage(tpe, emptyArray, 0)
       res
     }
   }
@@ -235,7 +234,6 @@ object MetaMessage {
     final val tpe = 0x58
 
     private def isPowerOfTwo(value: Int) = (value & (value-1)) == 0
-
   }
   final case class TimeSignature(num: Int, denom: Int, clocksPerMetro: Int, num32perQ: Int = 32) extends MetaMessage {
     if (!TimeSignature.isPowerOfTwo(denom))
@@ -247,9 +245,8 @@ object MetaMessage {
 
     def toJava: j.MidiMessage = {
       val res = new j.MetaMessage
-      val arr = new Array[Byte](5)
-      arr(0)  = (arr.length - 1).toByte
-      arr(1)  = num.toByte
+      val arr = new Array[Byte](4)
+      arr(0)  = num.toByte
       val denomP = {
         var i = 0
         var j = denom
@@ -259,9 +256,9 @@ object MetaMessage {
         }
         i
       }
-      arr(2)  = denomP.toByte
-      arr(3)  = clocksPerMetro.toByte
-      arr(4)  = num32perQ.toByte
+      arr(1)  = denomP.toByte
+      arr(2)  = clocksPerMetro.toByte
+      arr(3)  = num32perQ.toByte
       res.setMessage(TimeSignature.tpe, arr, arr.length)
       res
     }
@@ -282,11 +279,10 @@ object MetaMessage {
 
     def toJava: j.MidiMessage = {
       val res = new j.MetaMessage
-      val arr = new Array[Byte](4)
-      arr(0)  = (arr.length - 1).toByte
-      arr(1)  = (microsPerQ >> 16).toByte
-      arr(2)  = (microsPerQ >> 8).toByte
-      arr(3)  =  microsPerQ.toByte
+      val arr = new Array[Byte](3)
+      arr(0)  = (microsPerQ >> 16).toByte
+      arr(1)  = (microsPerQ >> 8).toByte
+      arr(2)  =  microsPerQ.toByte
       res.setMessage(Tempo.tpe, arr, arr.length)
       res
     }
@@ -295,25 +291,53 @@ object MetaMessage {
   object SMPTEOffset {
     final val tpe = 0x54
 
-    def apply(fps: Int, hours: Int, minutes: Int, seconds: Int, frames: Int, subframes: Int): SMPTEOffset = {
-      val fpsc = (fps: @switch) match {
-        case 24 => 0
-        case 25 => 1
-        case 29 => 2
-        case 30 => 3
-        case _  => sys.error(s"Unsupported fps $fps")
+    object Format {
+      final val _24     = code(0)
+      final val _25     = code(1)
+      final val _30drop = code(2)
+      final val _30     = code(3)
+
+      def value(fps: Double): Format = {
+        val code = fps match {
+          case 24.0   => 0
+          case 25.0   => 1
+          case 29.97  => 2
+          case 30.0   => 3
+          case _      => throw new IllegalArgumentException(s"Unsupported fps $fps")
+        }
+        new Format(code)
       }
-      val code = ((fpsc << 6 | hours).toLong << 32) | (minutes.toLong << 24) | (seconds << 16) |
+
+      def code(code: Int): Format = {
+        if (code < 0 || code > 3) throw new IllegalArgumentException(s"Unsupported fps code $code")
+        new Format(code)
+      }
+    }
+    final case class Format private(code: Int) {
+      def value: Double = (code: @switch) match {
+        case 0 => 24
+        case 1 => 25
+        case 2 => 29.97
+        case 3 => 30
+      }
+
+      override def toString = {
+        val v = value
+        if (code == 2) v.toString else v.toInt.toString
+      }
+    }
+
+    def apply(fps: Format, hours: Int, minutes: Int, seconds: Int, frames: Int, subframes: Int): SMPTEOffset = {
+      val code = ((fps.code << 6 | hours).toLong << 32) | (minutes.toLong << 24) | (seconds << 16) |
         (frames << 8) | subframes
       new SMPTEOffset(code)
     }
   }
   final case class SMPTEOffset(code: Long) extends MetaMessage {
+    import SMPTEOffset.Format
+
     override def toString = {
-      val fpss = fps match {
-        case 29     => "29.97"
-        case other  => other.toString
-      }
+      val fpss = fps.toString
       f"$productPrefix(time = $hours%02d:$minutes%02d:$seconds%02d:$frames%02d.$subframes, fps = $fpss)"
     }
 
@@ -323,12 +347,7 @@ object MetaMessage {
       * For simplicity this is an integer of the frames per second,
       * where `29` has the special meaning of 30 drop (29.97 fps).
       */
-    def fps: Int = ((code >> 38).toInt: @switch) match {
-      case 0 => 24
-      case 1 => 25
-      case 2 => 29
-      case 3 => 30
-    }
+    def fps: Format = Format.code((code >> 38).toInt)
 
     def minutes: Int    = (code.toInt >> 24) & 0xFF
     def seconds: Int    = (code.toInt >> 16) & 0xFF
@@ -337,13 +356,12 @@ object MetaMessage {
 
     def toJava: j.MidiMessage = {
       val res = new j.MetaMessage
-      val arr = new Array[Byte](6)
-      arr(0)  = (arr.length - 1).toByte
-      arr(1)  = (code >> 32).toByte
-      arr(2)  = (code >> 24).toByte
-      arr(3)  = (code >> 16).toByte
-      arr(4)  = (code >>  8).toByte
-      arr(5)  = (code      ).toByte
+      val arr = new Array[Byte](5)
+      arr(0)  = (code >> 32).toByte
+      arr(1)  = (code >> 24).toByte
+      arr(2)  = (code >> 16).toByte
+      arr(3)  = (code >>  8).toByte
+      arr(4)  = (code      ).toByte
       res.setMessage(SMPTEOffset.tpe, arr, arr.length)
       res
     }
@@ -401,8 +419,7 @@ object MetaMessage {
 
     final def toJava: j.MidiMessage = {
       val res = new j.MetaMessage
-      val arr = (" " + text).getBytes("UTF-8")    // correct to add the length?
-      arr(0)  = (arr.length - 1).toByte
+      val arr = text.getBytes("UTF-8")
       res.setMessage(tpe, arr, arr.length)
       res
     }
