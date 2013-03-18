@@ -85,7 +85,7 @@ private[midi] object SequenceImpl {
 
       // ppq = ticks/beat = (mpq aka micros/beat) * ticks/micro = mpq * ticks/second / 1.0e6
       val tpq = (mpq * rate.value / 1.0e6 + 0.5).toInt
-      println(s"mpq = $mpq, tpq = $tpq")
+//      println(s"mpq = $mpq, tpq = $tpq")
 
       val sj = new j.Sequence(j.Sequence.PPQ, tpq, tracks0.size)
       val tjs = sj.getTracks
