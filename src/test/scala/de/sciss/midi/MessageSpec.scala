@@ -10,9 +10,8 @@ class MessageSpec extends FunSpec {
   describe("Type safe MIDI messages") {
     it("should be convertible forth and back") {
 
-      def forthBack(m: Message) {
+      def forthBack(m: Message): Unit =
         assert(Message.fromJava(m.toJava) === m)
-      }
 
       forthBack(NoteOn(3, 4, 5))
       forthBack(NoteOff(6, 7, 8))

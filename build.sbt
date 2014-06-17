@@ -1,24 +1,24 @@
-name := "ScalaMIDI"
+name               := "ScalaMIDI"
 
-version := "0.1.1-SNAPSHOT"
+version            := "0.2.0-SNAPSHOT"
 
-organization := "de.sciss"
+organization       := "de.sciss"
 
-scalaVersion := "2.10.1"
+scalaVersion       := "2.11.1"
 
-description := "A library for accessing standard MIDI files"
+crossScalaVersions := Seq("2.11.1", "2.10.4")
 
-homepage <<= name { n => Some(url("https://github.com/Sciss/" + n)) }
+description        := "A library for accessing standard MIDI files"
 
-licenses := Seq("GPL v2+" -> url("http://www.gnu.org/licenses/gpl-2.0.txt"))
+homepage           := Some(url("https://github.com/Sciss/" + name.value))
 
-libraryDependencies in ThisBuild ++= Seq(
-  "org.scalatest" %% "scalatest" % "1.9.1" % "test"
-)
+licenses           := Seq("LGPL v2.1+" -> url("http://www.gnu.org/licenses/lgpl-2.1.txt"))
 
-retrieveManaged := true
+libraryDependencies += "org.scalatest" %% "scalatest" % "2.2.0" % "test"
 
-scalacOptions ++= Seq("-deprecation", "-unchecked", "-feature")
+// retrieveManaged := true
+
+scalacOptions ++= Seq("-deprecation", "-unchecked", "-feature", "-Xfuture")
 
 initialCommands in console :=
 """import de.sciss.midi._
@@ -54,7 +54,7 @@ publishArtifact in Test := false
 
 pomIncludeRepository := { _ => false }
 
-pomExtra <<= name { n =>
+pomExtra := { val n = name.value
 <scm>
   <url>git@github.com:Sciss/{n}.git</url>
   <connection>scm:git:git@github.com:Sciss/{n}.git</connection>
@@ -72,8 +72,9 @@ pomExtra <<= name { n =>
 
 seq(lsSettings :_*)
 
-(LsKeys.tags in LsKeys.lsync) := Seq("midi", "music")
+(LsKeys.tags   in LsKeys.lsync) := Seq("midi", "music")
 
 (LsKeys.ghUser in LsKeys.lsync) := Some("Sciss")
 
-(LsKeys.ghRepo in LsKeys.lsync) <<= name(Some(_))
+(LsKeys.ghRepo in LsKeys.lsync) := Some(name.value)
+
