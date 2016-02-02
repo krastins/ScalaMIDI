@@ -1,11 +1,12 @@
 # ScalaMIDI
 
 [![Flattr this](http://api.flattr.com/button/flattr-badge-large.png)](https://flattr.com/submit/auto?user_id=sciss&url=https%3A%2F%2Fgithub.com%2FSciss%2FScalaMIDI&title=ScalaMIDI%20Library&language=Scala&tags=github&category=software)
+[![Build Status](https://travis-ci.org/Sciss/ScalaMIDI.svg?branch=master)](https://travis-ci.org/Sciss/ScalaMIDI)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/de.sciss/scalamidi_2.11/badge.svg)](https://maven-badges.herokuapp.com/maven-central/de.sciss/scalamidi_2.11)
 
 ## statement
 
-ScalaMIDI is a library for accessing standard [MIDI](http://www.midi.org/) files in the Scala programming language. It is (C)opyright 2013&ndash;2014 by Hanns Holger Rutz. All rights reserved. ScalaOSC is released under the [GNU Lesser General Public License](https://raw.github.com/Sciss/ScalaMIDI/master/LICENSE) v2.1+ and comes with absolutely no warranties. To contact the author, send an email to `contact at sciss.de`
+ScalaMIDI is a library for accessing standard [MIDI](http://www.midi.org/) files in the Scala programming language. It is (C)opyright 2013&ndash;2016 by Hanns Holger Rutz. All rights reserved. ScalaOSC is released under the [GNU Lesser General Public License](https://raw.github.com/Sciss/ScalaMIDI/master/LICENSE) v2.1+ and comes with absolutely no warranties. To contact the author, send an email to `contact at sciss.de`
 
 The example file for Erik Satie's 'Vexations', `vexation.mid`, is (C)opyright by [Reinhard Kopiez](http://musicweb.hmt-hannover.de/satie/) and provided on a Creative Commons attribution (CC BY 3.0) type condition. This file is not included in the published library.
 
@@ -20,6 +21,10 @@ The current version `v` is `"0.2.0"`
 ## building
 
 ScalaMIDI currently builds against Scala 2.11 and 2.10, using sbt 0.12. It uses the MIDI API from Java (`javax.sound.midi`) under the hood.
+
+## contributing
+
+Please see the file [CONTRIBUTING.md](CONTRIBUTING.md)
 
 ## overview
 
