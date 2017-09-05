@@ -1,24 +1,15 @@
 name               := "ScalaMIDI"
-
-version            := "0.2.0"
-
+version            := "0.2.1"
 organization       := "de.sciss"
-
-scalaVersion       := "2.11.1"
-
-crossScalaVersions := Seq("2.11.1", "2.10.4")
-
+scalaVersion       := "2.12.3"
+crossScalaVersions := Seq("2.12.3", "2.11.11", "2.10.6")
 description        := "A library for accessing standard MIDI files"
-
-homepage           := Some(url("https://github.com/Sciss/" + name.value))
-
+homepage           := Some(url(s"https://github.com/Sciss/${name.value}"))
 licenses           := Seq("LGPL v2.1+" -> url("http://www.gnu.org/licenses/lgpl-2.1.txt"))
 
-libraryDependencies += "org.scalatest" %% "scalatest" % "2.2.0" % "test"
+libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.4" % "test"
 
-// retrieveManaged := true
-
-scalacOptions ++= Seq("-deprecation", "-unchecked", "-feature", "-Xfuture")
+scalacOptions ++= Seq("-deprecation", "-unchecked", "-feature", "-Xfuture", "-encoding", "utf8", "-Xlint")
 
 initialCommands in console :=
 """import de.sciss.midi._
@@ -26,10 +17,7 @@ initialCommands in console :=
 """.stripMargin
 
 // ---- build info ----
-
-buildInfoSettings
-
-sourceGenerators in Compile <+= buildInfo
+enablePlugins(BuildInfoPlugin)
 
 buildInfoKeys := Seq(name, organization, version, scalaVersion, description,
   BuildInfoKey.map(homepage) { case (k, opt)           => k -> opt.get },
@@ -42,8 +30,8 @@ buildInfoPackage := "de.sciss.midi"
 
 publishMavenStyle := true
 
-publishTo <<= version { (v: String) =>
-  Some(if (v endsWith "-SNAPSHOT")
+publishTo := {
+  Some(if (isSnapshot.value)
     "Sonatype Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
   else
     "Sonatype Releases"  at "https://oss.sonatype.org/service/local/staging/deploy/maven2"
@@ -67,14 +55,4 @@ pomExtra := { val n = name.value
    </developer>
 </developers>
 }
-
-// ---- ls.implicit.ly ----
-
-seq(lsSettings :_*)
-
-(LsKeys.tags   in LsKeys.lsync) := Seq("midi", "music")
-
-(LsKeys.ghUser in LsKeys.lsync) := Some("Sciss")
-
-(LsKeys.ghRepo in LsKeys.lsync) := Some(name.value)
 

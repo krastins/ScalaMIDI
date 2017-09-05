@@ -6,7 +6,7 @@
 
 ## statement
 
-ScalaMIDI is a library for accessing standard [MIDI](http://www.midi.org/) files in the Scala programming language. It is (C)opyright 2013&ndash;2016 by Hanns Holger Rutz. All rights reserved. ScalaOSC is released under the [GNU Lesser General Public License](https://raw.github.com/Sciss/ScalaMIDI/master/LICENSE) v2.1+ and comes with absolutely no warranties. To contact the author, send an email to `contact at sciss.de`
+ScalaMIDI is a library for accessing standard [MIDI](http://www.midi.org/) files in the Scala programming language. It is (C)opyright 2013&ndash;2017 by Hanns Holger Rutz. All rights reserved. ScalaOSC is released under the [GNU Lesser General Public License](https://raw.github.com/Sciss/ScalaMIDI/master/LICENSE) v2.1+ and comes with absolutely no warranties. To contact the author, send an email to `contact at sciss.de`
 
 The example file for Erik Satie's 'Vexations', `vexation.mid`, is (C)opyright by [Reinhard Kopiez](http://musicweb.hmt-hannover.de/satie/) and provided on a Creative Commons attribution (CC BY 3.0) type condition. This file is not included in the published library.
 
@@ -16,11 +16,11 @@ To link to this library:
 
     libraryDependencies += "de.sciss" %% "scalamidi" % v
 
-The current version `v` is `"0.2.0"`
+The current version `v` is `"0.2.1"`
 
 ## building
 
-ScalaMIDI currently builds against Scala 2.11 and 2.10, using sbt 0.12. It uses the MIDI API from Java (`javax.sound.midi`) under the hood.
+ScalaMIDI currently builds against Scala 2.12, 2.11 and 2.10, using sbt 0.13. It uses the MIDI API from Java (`javax.sound.midi`) under the hood.
 
 ## contributing
 
@@ -62,6 +62,6 @@ Creating an example sequence:
 - This is a very early version
 - Currently, there is no support for many messages, such as after touch, pitch bend, time code, song pointer etc.
 
-## links
+## links
 
 Note: There is another similarly named library [scala-midi](http://code.google.com/p/scala-midi/) which is completely independent from this project.
