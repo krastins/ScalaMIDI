@@ -16,7 +16,6 @@ package impl
 
 import javax.sound.{midi => j}
 import collection.immutable.{IndexedSeq => IIdxSeq}
-import collection.breakOut
 import java.io.File
 
 private[midi] object SequenceImpl {
@@ -26,8 +25,8 @@ private[midi] object SequenceImpl {
     tracks match {
       case head +: tail =>
         require(tail.forall(_.rate == head.rate), "Cannot mix tracks with different time bases")
-        val ticks           = (head.ticks /: tail) { case (m, t) => math.max(m, t.ticks) }
         implicit val rate   = head.rate
+        val ticks           = tail.foldLeft(head.ticks) { case (m, t) => math.max(m, t.ticks) }
         new Apply(tracks, ticks)
 
       case _ =>
@@ -95,7 +94,7 @@ private[midi] object SequenceImpl {
     protected def numTracks = peer.getTracks.length
 
     lazy val tracks: IIdxSeq[Track] = peer.getTracks.map(tj =>
-      TrackImpl.fromJava(tj, self, skipUnknown = skipUnknown))(breakOut)
+      TrackImpl.fromJava(tj, self, skipUnknown = skipUnknown)).to(IIdxSeq)
 
     def ticks: Long = peer.getTickLength
 

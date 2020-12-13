@@ -1,15 +1,15 @@
 name               := "ScalaMIDI"
 version            := "0.3.0"
 organization       := "de.sciss"
-scalaVersion       := "2.12.3"
-crossScalaVersions := Seq("2.12.3", "2.11.11", "2.10.6")
+scalaVersion       := "2.13.4"
+//crossScalaVersions := Seq("2.13.3", "2.12.3", "2.11.11", "2.10.6")
 description        := "A library for accessing standard MIDI files"
 homepage           := Some(url(s"https://github.com/Sciss/${name.value}"))
 licenses           := Seq("LGPL v2.1+" -> url("http://www.gnu.org/licenses/lgpl-2.1.txt"))
 
 libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.4" % "test"
 
-scalacOptions ++= Seq("-deprecation", "-unchecked", "-feature", "-Xfuture", "-encoding", "utf8", "-Xlint")
+scalacOptions ++= Seq("-deprecation", "-unchecked", "-feature", "-encoding", "utf8", "-Xlint")
 
 initialCommands in console :=
 """import de.sciss.midi._

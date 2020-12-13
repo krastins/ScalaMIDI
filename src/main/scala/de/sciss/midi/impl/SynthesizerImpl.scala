@@ -15,7 +15,6 @@ package de.sciss.midi
 package impl
 
 import javax.sound.{midi => j}
-import collection.breakOut
 
 private[midi] object SynthesizerImpl {
   def open(): Synthesizer = {
@@ -34,7 +33,7 @@ private[midi] object SynthesizerImpl {
     def close(): Unit = peer.close()
 
     lazy val instruments: Map[String, Instrument] = {
-      peer.getAvailableInstruments.map(ij => ij.getName -> InstrumentImpl.fromJava(ij))(breakOut)
+      peer.getAvailableInstruments.map(ij => ij.getName -> InstrumentImpl.fromJava(ij)).to(Map)
     }
 
     def load(instrument: Instrument): Unit =
