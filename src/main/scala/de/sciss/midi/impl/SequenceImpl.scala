@@ -25,8 +25,8 @@ private[midi] object SequenceImpl {
     tracks match {
       case head +: tail =>
         require(tail.forall(_.rate == head.rate), "Cannot mix tracks with different time bases")
-        implicit val rate   = head.rate
         val ticks           = tail.foldLeft(head.ticks) { case (m, t) => math.max(m, t.ticks) }
+        implicit val rate: TickRate = head.rate
         new Apply(tracks, ticks)
 
       case _ =>
@@ -98,7 +98,7 @@ private[midi] object SequenceImpl {
 
     def ticks: Long = peer.getTickLength
 
-    lazy val rate = TickRate.duration(ticks = ticks, micros = peer.getMicrosecondLength)
+    lazy val rate: TickRate = TickRate.duration(ticks = ticks, micros = peer.getMicrosecondLength)
 
 //    def notes: IIdxSeq[OffsetNote] = tracks.flatMap(_.notes)
 
