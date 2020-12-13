@@ -1,5 +1,5 @@
 name               := "ScalaMIDI"
-version            := "0.2.1"
+version            := "0.3.0"
 organization       := "de.sciss"
 scalaVersion       := "2.12.3"
 crossScalaVersions := Seq("2.12.3", "2.11.11", "2.10.6")
