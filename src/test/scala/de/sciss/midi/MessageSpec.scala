@@ -1,12 +1,12 @@
 package de.sciss.midi
 
-import org.scalatest.FunSpec
+import org.scalatest.funspec.AnyFunSpec
 
 /*
  *  to run only this test
  *  test-only de.sciss.midi.MessageSpec
  */
-class MessageSpec extends FunSpec {
+class MessageSpec extends AnyFunSpec {
   describe("Type safe MIDI messages") {
     it("should be convertible forth and back") {
 
